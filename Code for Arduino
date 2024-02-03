@@ -1,0 +1,60 @@
+#include <LiquidCrystal_I2C.h>
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+int buzzer = 10;
+int GASA0 = A0;
+int gasvalue = 0;
+
+void setup() {
+  lcd.init();
+  lcd.init();
+  lcd.backlight();
+  Serial.begin(9600);
+  pinMode(buzzer, OUTPUT);
+  lcd.setCursor(1, 0);
+  lcd.print("Air Monitoring");
+  lcd.setCursor(0, 1);
+  lcd.print("Loading......");
+  delay(7000);
+}
+
+void loop() {
+  int analogSensor = analogRead(GASA0);
+
+  // Increase gas value more rapidly
+  gasvalue += analogSensor / 50;
+
+  // Limit gas value to a maximum of 500
+  gasvalue = min(gasvalue, 500);
+
+  lcd.setCursor(0, 0);
+  lcd.print("AIR QUALITY ");
+  lcd.setCursor(12, 0);
+  lcd.print(gasvalue);
+
+  // Display AQI level based on gas value range
+  lcd.setCursor(0, 1);
+  if (gasvalue >= 0 && gasvalue <= 50) {
+    lcd.print("    GOOD    ");
+  } else if (gasvalue <= 100) {
+    lcd.print("   MODERATE   ");
+  } else if (gasvalue <= 200) {
+    lcd.print("  UNHEALTHY  ");
+  } else if (gasvalue <= 300) {
+    lcd.print(" VERY UNHEALTHY");
+  } else {
+    lcd.print("   HAZARDOUS   ");
+  }
+
+  // Checks if it has reached the threshold value
+  if (gasvalue >= 100) {
+    tone(buzzer, 1000, 10000);
+  } else {
+    noTone(buzzer);
+  }
+
+  delay(500);
+
+  // Clear the display
+  lcd.clear();
+}
